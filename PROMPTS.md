@@ -31,3 +31,18 @@
 
 ## 2026-11-13 14:03:31 PKT
 > tested now move to next step
+
+## 2026-11-13 14:10:52 PKT
+> responsive tested and working fine, now let's move to next step
+
+## 2026-11-13 14:15:14 PKT
+> for axios you need to create a interceptor files and use this
+
+## 2026-11-13 14:19:50 PKT
+> do not directly create all files root of src folder create lib or helper folder and move all files there in there own folders constants, types, utils etc,
+
+## 2026-11-13 14:21:40 PKT
+> and move to next step
+
+## 2026-11-13 14:59:03 PKT
+> tested working fine, let's move to next step

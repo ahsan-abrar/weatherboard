@@ -54,12 +54,16 @@ small condition set (sunny, partly cloudy, cloudy, rain, storm, snow, fog) with 
 
 ```
 src/
-  constants.ts        # every constant: API URLs, keys, storage keys, limits, debounce, defaults, messages
-  utils.ts            # debounce, storage (safe), °C/°F, dates, range %, condition/icon, cn
-  types.ts            # City, CurrentWeather, ForecastDay, Settings, Favourite
-  api.ts              # axios instance + interceptors + search/weather calls + fallback + error mapping
   App.tsx             # state, effects, handlers, layout composition
+  main.tsx
   index.css           # Tailwind v4 import + @theme tokens + few base styles
+  lib/
+    constants/index.ts  # every constant: API URLs, keys, storage keys, limits, debounce, defaults, messages
+    types/index.ts      # City, CurrentWeather, ForecastDay, Settings, Favourite
+    utils/index.ts      # debounce, storage (safe), °C/°F, dates, range %, condition/icon, cn
+    api/index.ts        # search/weather calls + provider fallback + cache
+    api/client.ts       # Axios clients
+    api/interceptors.ts # error normalisation + GeoDB headers
   components/
     Sidebar.tsx       # brand, favourites panel, reminder card
     SearchBar.tsx     # input, suggestions, validation message

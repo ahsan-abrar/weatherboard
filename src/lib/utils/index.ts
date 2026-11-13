@@ -1,4 +1,4 @@
-import type { Unit } from './types'
+import type { City, Unit } from '../types'
 
 /** Join class names, skipping falsy values (keeps JSX readable). */
 export function cn(...classes: Array<string | false | null | undefined>) {
@@ -76,4 +76,10 @@ export function debounce<Args extends unknown[]>(fn: (...args: Args) => void, de
     clearTimeout(timer)
     timer = setTimeout(() => fn(...args), delay)
   }
+}
+
+/** Same place can come back from different providers with different ids. */
+export function isSameCity(first: City, second: City) {
+  if (first.id && second.id && first.id === second.id) return true
+  return Math.abs(first.lat - second.lat) < 0.01 && Math.abs(first.lon - second.lon) < 0.01
 }

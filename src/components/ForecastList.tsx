@@ -1,6 +1,6 @@
-import { CONDITIONS } from '../constants'
-import type { ForecastDay, Unit } from '../types'
-import { formatForecastDay, toDisplayTemp } from '../utils'
+import { CONDITIONS } from '../lib/constants'
+import type { ForecastDay, Unit } from '../lib/types'
+import { formatForecastDay, toDisplayTemp } from '../lib/utils'
 import { WeatherIcon } from './WeatherIcon'
 
 interface ForecastListProps {

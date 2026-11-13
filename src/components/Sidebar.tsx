@@ -1,15 +1,26 @@
 import { useState } from 'react'
-import { ChevronDown, Clock, CloudSun, Star } from 'lucide-react'
-import { MAX_FAVOURITES } from '../constants'
-import type { Favourite, Reminder } from '../types'
-import { cn, formatReminderTime } from '../utils'
+import { ChevronDown, Clock, CloudSun, Star, X } from 'lucide-react'
+import { MAX_FAVOURITES, MESSAGES } from '../lib/constants'
+import type { City, Favourite, Reminder } from '../lib/types'
+import { cn, formatReminderTime, isSameCity } from '../lib/utils'
 
 interface SidebarProps {
   favourites: Favourite[]
   reminder: Reminder
+  activeCity?: City
+  storageBlocked: boolean
+  onSelectFavourite: (city: City) => void
+  onRemoveFavourite: (city: City) => void
 }
 
-export function Sidebar({ favourites, reminder }: SidebarProps) {
+export function Sidebar({
+  favourites,
+  reminder,
+  activeCity,
+  storageBlocked,
+  onSelectFavourite,
+  onRemoveFavourite,
+}: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -55,67 +66,98 @@ export function Sidebar({ favourites, reminder }: SidebarProps) {
           </div>
         ) : (
           <ul className="mt-3 space-y-1">
-            {favourites.map((favourite) => (
-              <li key={`${favourite.city.name}-${favourite.city.lat}`}>
-                <button
-                  type="button"
-                  className="flex min-h-11 w-full items-center gap-2 rounded-lg px-2 text-left text-sm transition-colors hover:bg-card"
+            {favourites.map(({ city }) => {
+              const isActive = activeCity ? isSameCity(city, activeCity) : false
+
+              return (
+                <li
+                  key={`${city.name}-${city.lat}`}
+                  className={cn(
+                    'flex items-center rounded-lg transition-colors',
+                    isActive ? 'bg-card' : 'hover:bg-card',
+                  )}
                 >
-                  <Star size={14} className="text-sun" fill="currentColor" />
-                  <span className="truncate">{favourite.city.name}</span>
-                  <span className="ml-auto truncate text-xs text-muted">
-                    {favourite.city.country}
-                  </span>
-                </button>
-              </li>
-            ))}
+                  <button
+                    type="button"
+                    onClick={() => onSelectFavourite(city)}
+                    className="flex min-h-11 min-w-0 flex-1 items-center gap-2 px-2 text-left"
+                  >
+                    <Star
+                      size={14}
+                      className={cn('shrink-0', isActive ? 'text-sun' : 'text-muted')}
+                      fill={isActive ? 'currentColor' : 'none'}
+                      aria-hidden="true"
+                    />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm">{city.name}</span>
+                      <span className="block truncate text-[11px] text-muted">{city.country}</span>
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onRemoveFavourite(city)}
+                    aria-label={`Remove ${city.name} from favourites`}
+                    className="grid size-11 shrink-0 place-items-center rounded-lg text-muted transition-colors hover:text-danger"
+                  >
+                    <X size={15} aria-hidden="true" />
+                  </button>
+                </li>
+              )
+            })}
           </ul>
         )}
 
-      <div className="mt-9">
-        <p className="text-xs font-medium text-muted">Morning reminder</p>
+        {storageBlocked && (
+          <p role="status" className="mt-2 text-xs leading-relaxed text-danger">
+            {MESSAGES.storageBlocked}
+          </p>
+        )}
 
-        <div className="mt-3 flex items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold">Daily forecast</p>
-            <p className="mt-1 text-xs leading-relaxed text-muted">
-              Sent even when the app is closed.
-            </p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={reminder.enabled}
-            aria-label="Daily forecast reminder"
-            className="relative -m-2.5 mt-[-0.375rem] shrink-0 rounded-full p-2.5"
-          >
-            <span
-              className={cn(
-                'block h-6 w-11 rounded-full transition-colors',
-                reminder.enabled ? 'bg-brand' : 'bg-line',
-              )}
+        <div className="mt-9">
+          <p className="text-xs font-medium text-muted">Morning reminder</p>
+
+          <div className="mt-3 flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold">Daily forecast</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted">
+                Sent even when the app is closed.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={reminder.enabled}
+              aria-label="Daily forecast reminder"
+              className="relative -m-2.5 mt-[-0.375rem] shrink-0 rounded-full p-2.5"
             >
               <span
                 className={cn(
-                  'block size-5 translate-y-0.5 rounded-full bg-white shadow-sm transition-transform',
-                  reminder.enabled ? 'translate-x-[22px]' : 'translate-x-0.5',
+                  'block h-6 w-11 rounded-full transition-colors',
+                  reminder.enabled ? 'bg-brand' : 'bg-line',
                 )}
-              />
-            </span>
-          </button>
-        </div>
+              >
+                <span
+                  className={cn(
+                    'block size-5 translate-y-0.5 rounded-full bg-white shadow-sm transition-transform',
+                    reminder.enabled ? 'translate-x-[22px]' : 'translate-x-0.5',
+                  )}
+                />
+              </span>
+            </button>
+          </div>
 
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <span className="text-sm">Remind me at</span>
-          <button
-            type="button"
-            className="flex min-h-11 items-center gap-2 rounded-lg border border-line bg-card px-3 text-sm tabular-nums"
-          >
-            {formatReminderTime(reminder.time)}
-            <Clock size={15} className="text-muted" />
-          </button>
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <span className="text-sm">Remind me at</span>
+            <button
+              type="button"
+              className="flex min-h-11 items-center gap-2 rounded-lg border border-line bg-card px-3 text-sm tabular-nums"
+            >
+              {formatReminderTime(reminder.time)}
+              <Clock size={15} className="text-muted" />
+            </button>
+          </div>
         </div>
-      </div>
       </div>
     </aside>
   )

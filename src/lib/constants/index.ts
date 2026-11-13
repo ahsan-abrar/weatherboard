@@ -83,10 +83,13 @@ export const CONDITIONS = {
 export const MESSAGES = {
   emptyCity: 'Enter a city name to see the weather.',
   selectCity: 'Pick a city from the suggestions so we know which one you mean.',
+  searchHint: 'Type at least 2 letters to see suggestions.',
+  searching: 'Searching cities…',
   noResults: 'No cities matched that name. Check the spelling or try a nearby city.',
   network: 'We could not reach the weather service. Check your connection and try again.',
   rateLimit: 'The weather service is busy right now. Try again in a minute.',
   server: 'The weather service returned an error. Please try again shortly.',
+  cityNotFound: 'We could not find weather for that city. Try another one.',
   offlineNoCache: 'You are offline and no weather has been saved yet. Reconnect and search for a city.',
   offlineBanner: 'You are offline — showing the last saved weather.',
   favouritesFull: `You can save up to ${MAX_FAVOURITES} cities. Remove one first.`,

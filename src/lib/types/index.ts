@@ -56,5 +56,5 @@ export type PreviewState = 'live' | 'loading' | 'error' | 'offline' | 'blocked'
 
 export interface ApiError {
   message: string
-  kind: 'network' | 'not-found' | 'rate-limit' | 'server' | 'unknown'
+  kind: 'network' | 'not-found' | 'rate-limit' | 'server' | 'canceled' | 'unknown'
 }

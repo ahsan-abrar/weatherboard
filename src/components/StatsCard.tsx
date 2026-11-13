@@ -1,5 +1,5 @@
-import type { CurrentWeather, Unit } from '../types'
-import { toDisplayTemp, toDisplayWind } from '../utils'
+import type { CurrentWeather, Unit } from '../lib/types'
+import { toDisplayTemp, toDisplayWind } from '../lib/utils'
 
 interface StatsCardProps {
   current: CurrentWeather

@@ -1,7 +1,7 @@
 import { MapPin, Star } from 'lucide-react'
-import { CONDITIONS, UNIT_LABELS } from '../constants'
-import type { City, CurrentWeather as CurrentWeatherType, Unit } from '../types'
-import { cn, toDisplayTemp } from '../utils'
+import { CONDITIONS, UNIT_LABELS } from '../lib/constants'
+import type { City, CurrentWeather as CurrentWeatherType, Unit } from '../lib/types'
+import { cn, toDisplayTemp } from '../lib/utils'
 import { WeatherIcon } from './WeatherIcon'
 
 interface CurrentWeatherProps {
@@ -9,9 +9,16 @@ interface CurrentWeatherProps {
   current: CurrentWeatherType
   unit: Unit
   isFavourite: boolean
+  onToggleFavourite: () => void
 }
 
-export function CurrentWeather({ city, current, unit, isFavourite }: CurrentWeatherProps) {
+export function CurrentWeather({
+  city,
+  current,
+  unit,
+  isFavourite,
+  onToggleFavourite,
+}: CurrentWeatherProps) {
   const condition = CONDITIONS[current.condition as keyof typeof CONDITIONS] ?? CONDITIONS.clear
   const temperature = toDisplayTemp(current.tempC, unit)
 
@@ -29,7 +36,9 @@ export function CurrentWeather({ city, current, unit, isFavourite }: CurrentWeat
           </h1>
           <button
             type="button"
+            onClick={onToggleFavourite}
             aria-pressed={isFavourite}
+            title={isFavourite ? 'Remove from favourites' : 'Save this city'}
             className={cn(
               'flex min-h-11 items-center gap-2 rounded-full border px-4 text-base transition-colors',
               isFavourite

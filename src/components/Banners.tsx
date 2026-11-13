@@ -1,7 +1,7 @@
-import { BellOff, CloudOff, RotateCcw, WifiOff } from 'lucide-react'
-import { MESSAGES, PREVIEW_STATES } from '../constants'
-import type { PreviewState } from '../types'
-import { cn, formatTime } from '../utils'
+import { AlertCircle, BellOff, CloudOff, RotateCcw, WifiOff } from 'lucide-react'
+import { MESSAGES, PREVIEW_STATES } from '../lib/constants'
+import type { PreviewState } from '../lib/types'
+import { cn, formatTime } from '../lib/utils'
 
 interface PreviewBarProps {
   value: PreviewState
@@ -52,7 +52,7 @@ export function PreviewBar({ value, onChange }: PreviewBarProps) {
   )
 }
 
-export function OfflineBanner({ updatedAt }: { updatedAt: number }) {
+export function OfflineBanner({ updatedAt }: { updatedAt?: number }) {
   return (
     <div
       role="status"
@@ -61,7 +61,9 @@ export function OfflineBanner({ updatedAt }: { updatedAt: number }) {
       <WifiOff size={18} className="mt-0.5 shrink-0 text-sun" aria-hidden="true" />
       <div>
         <p className="text-sm font-medium">{MESSAGES.offlineBanner}</p>
-        <p className="mt-0.5 text-xs text-muted">Last updated {formatTime(updatedAt)}</p>
+        {updatedAt && (
+          <p className="mt-0.5 text-xs text-muted">Last updated {formatTime(updatedAt)}</p>
+        )}
       </div>
     </div>
   )
@@ -79,7 +81,25 @@ export function NotificationBlockedBanner() {
   )
 }
 
-export function FetchError({ onRetry }: { onRetry: () => void }) {
+export function NoticeBanner({ message }: { message: string }) {
+  return (
+    <div
+      role="status"
+      className="flex items-start gap-3 rounded-card border border-danger/30 bg-danger/10 px-4 py-3"
+    >
+      <AlertCircle size={18} className="mt-0.5 shrink-0 text-danger" aria-hidden="true" />
+      <p className="text-sm">{message}</p>
+    </div>
+  )
+}
+
+export function FetchError({
+  message = MESSAGES.network,
+  onRetry,
+}: {
+  message?: string
+  onRetry: () => void
+}) {
   return (
     <section
       role="alert"
@@ -87,7 +107,7 @@ export function FetchError({ onRetry }: { onRetry: () => void }) {
     >
       <CloudOff size={36} className="mx-auto text-muted" aria-hidden="true" />
       <h2 className="mt-4 font-display text-3xl">Could not load the weather</h2>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">{MESSAGES.network}</p>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">{message}</p>
       <button
         type="button"
         onClick={onRetry}
