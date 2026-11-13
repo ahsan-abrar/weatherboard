@@ -1,122 +1,93 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { Moon } from 'lucide-react'
+import { DEFAULT_CITY, DEFAULT_REMINDER, UNIT_LABELS } from './constants'
+import { CurrentWeather } from './components/CurrentWeather'
+import { ForecastList } from './components/ForecastList'
+import { PreviewBar } from './components/Banners'
+import { SearchBar } from './components/SearchBar'
+import { Sidebar } from './components/Sidebar'
+import { StatsCard } from './components/StatsCard'
+import type { Unit, WeatherSnapshot } from './types'
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+/* Temporary data for the static UI step; replaced by real API data in Step 4. */
+const MOCK_WEATHER: WeatherSnapshot = {
+  city: { ...DEFAULT_CITY, id: 'mock-karachi' },
+  current: {
+    tempC: 31,
+    feelsLikeC: 33,
+    humidity: 64,
+    windKph: 14,
+    condition: 'clear',
+    icon: 'sun',
+    highC: 33,
+    lowC: 25,
+    updatedAt: Date.now(),
+  },
+  forecast: [
+    { date: '2026-11-13', condition: 'clear', icon: 'sun', minC: 25, maxC: 33 },
+    { date: '2026-11-14', condition: 'partly', icon: 'partly', minC: 25, maxC: 32 },
+    { date: '2026-11-15', condition: 'clear', icon: 'sun', minC: 26, maxC: 34 },
+    { date: '2026-11-16', condition: 'cloudy', icon: 'cloud', minC: 25, maxC: 31 },
+    { date: '2026-11-17', condition: 'rain', icon: 'rain', minC: 24, maxC: 29 },
+  ],
 }
 
-export default App
+export default function App() {
+  const weather = MOCK_WEATHER
+  const unit: Unit = 'celsius'
+
+  return (
+    <div className="min-h-dvh bg-page">
+      <div className="mx-auto flex min-h-dvh w-full max-w-[1920px] flex-col md:flex-row">
+        <Sidebar favourites={[]} reminder={DEFAULT_REMINDER} />
+
+        <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-10 lg:py-8">
+          <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <SearchBar />
+
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center rounded-lg border border-line bg-card p-1 shadow-card">
+                <button
+                  type="button"
+                  aria-pressed="true"
+                  className="min-h-9 rounded-md bg-ink px-3 text-xs font-semibold text-page"
+                >
+                  {UNIT_LABELS.celsius}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed="false"
+                  className="min-h-9 rounded-md px-3 text-xs font-medium text-muted"
+                >
+                  {UNIT_LABELS.fahrenheit}
+                </button>
+              </div>
+
+              <button
+                type="button"
+                aria-label="Switch to dark mode"
+                className="grid size-11 place-items-center rounded-lg border border-line bg-card text-ink shadow-card"
+              >
+                <Moon size={18} aria-hidden="true" />
+              </button>
+            </div>
+          </header>
+
+          <div className="mx-auto mt-8 w-full max-w-[1480px] lg:mt-12">
+            <CurrentWeather
+              city={weather.city}
+              current={weather.current}
+              unit={unit}
+              isFavourite={false}
+            />
+
+            <StatsCard current={weather.current} unit={unit} />
+
+            <ForecastList forecast={weather.forecast} unit={unit} />
+
+            <PreviewBar />
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
