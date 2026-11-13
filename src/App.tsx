@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Sun, Moon, Download } from 'lucide-react'
-import { getWeather, isCanceled, readCachedWeather } from './lib/api'
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Sun, Moon, Download } from "lucide-react";
+import { getWeather, isCanceled, readCachedWeather } from "./lib/api";
 import {
   DEFAULT_CITY,
   DEFAULT_REMINDER,
@@ -8,7 +8,7 @@ import {
   MESSAGES,
   STORAGE_KEYS,
   UNIT_LABELS,
-} from './lib/constants'
+} from "./lib/constants";
 import type {
   ApiError,
   City,
@@ -18,15 +18,15 @@ import type {
   Settings,
   Unit,
   WeatherSnapshot,
-} from './lib/types'
+} from "./lib/types";
 import {
   getNotificationState,
   requestNotificationPermission,
   showTestNotification,
   syncReminderWithWorker,
   type NotificationState,
-} from './lib/notifications'
-import { cn, isSameCity, readStorage, writeStorage } from './lib/utils'
+} from "./lib/notifications";
+import { cn, isSameCity, readStorage, writeStorage } from "./lib/utils";
 import {
   FetchError,
   NoticeBanner,
@@ -35,306 +35,326 @@ import {
   OfflineEmpty,
   PreviewBar,
   WeatherSkeleton,
-} from './components/Banners'
-import { CurrentWeather } from './components/CurrentWeather'
-import { ConfirmDialog } from './components/ConfirmDialog'
-import { ForecastList } from './components/ForecastList'
-import { SearchBar } from './components/SearchBar'
-import { Sidebar } from './components/Sidebar'
-import { StatsCard } from './components/StatsCard'
+} from "./components/Banners";
+import { CurrentWeather } from "./components/CurrentWeather";
+import { ConfirmDialog } from "./components/ConfirmDialog";
+import { ForecastList } from "./components/ForecastList";
+import { SearchBar } from "./components/SearchBar";
+import { Sidebar } from "./components/Sidebar";
+import { StatsCard } from "./components/StatsCard";
 
-type WeatherStatus = 'loading' | 'ready' | 'error'
+type WeatherStatus = "loading" | "ready" | "error";
 
 interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
 /** Stored values are untrusted: a blocked or hand-edited value must not crash the app. */
 function loadFavourites(): Favourite[] {
-  const stored = readStorage<Favourite[]>(STORAGE_KEYS.favourites)
-  if (!Array.isArray(stored)) return []
-  return stored.filter((item) => Boolean(item?.city?.name)).slice(0, MAX_FAVOURITES)
+  const stored = readStorage<Favourite[]>(STORAGE_KEYS.favourites);
+  if (!Array.isArray(stored)) return [];
+  return stored
+    .filter((item) => Boolean(item?.city?.name))
+    .slice(0, MAX_FAVOURITES);
 }
 
 /** Fall back to safe defaults when settings are missing or invalid. */
 function loadSettings(): Settings {
-  const stored = readStorage<Settings>(STORAGE_KEYS.settings)
+  const stored = readStorage<Settings>(STORAGE_KEYS.settings);
   return {
-    unit: stored?.unit === 'fahrenheit' ? 'fahrenheit' : 'celsius',
+    unit: stored?.unit === "fahrenheit" ? "fahrenheit" : "celsius",
     theme:
-      stored?.theme === 'light' || stored?.theme === 'dark' ? stored.theme : 'system',
-  }
+      stored?.theme === "light" || stored?.theme === "dark"
+        ? stored.theme
+        : "system",
+  };
 }
 
 /** Only a real "HH:MM" value is accepted; anything else becomes the default time. */
 function loadReminder(): Reminder {
-  const stored = readStorage<Reminder>(STORAGE_KEYS.reminder)
-  const validTime = stored?.time && /^\d{2}:\d{2}$/.test(stored.time)
+  const stored = readStorage<Reminder>(STORAGE_KEYS.reminder);
+  const validTime = stored?.time && /^\d{2}:\d{2}$/.test(stored.time);
 
   return {
     enabled: Boolean(stored?.enabled),
     time: validTime ? stored.time : DEFAULT_REMINDER.time,
-  }
+  };
 }
 
 export default function App() {
-  const [preview, setPreview] = useState<PreviewState>('live')
+  const [preview, setPreview] = useState<PreviewState>("live");
   /* Cache-first: the last snapshot paints immediately, then gets refreshed. */
-  const [weather, setWeather] = useState<WeatherSnapshot | null>(readCachedWeather)
+  const [weather, setWeather] = useState<WeatherSnapshot | null>(
+    readCachedWeather,
+  );
   const [city, setCity] = useState<City>(
-    () => weather?.city ?? readStorage<City>(STORAGE_KEYS.lastCity) ?? DEFAULT_CITY,
-  )
+    () =>
+      weather?.city ?? readStorage<City>(STORAGE_KEYS.lastCity) ?? DEFAULT_CITY,
+  );
   const [weatherStatus, setWeatherStatus] = useState<WeatherStatus>(
-    weather ? 'ready' : 'loading',
-  )
-  const [weatherError, setWeatherError] = useState('')
-  const [favourites, setFavourites] = useState<Favourite[]>(loadFavourites)
-  const [pendingRemoval, setPendingRemoval] = useState<City | null>(null)
-  const [storageBlocked, setStorageBlocked] = useState(false)
-  const [notice, setNotice] = useState('')
-  const [settings, setSettings] = useState<Settings>(loadSettings)
-  const [reminder, setReminder] = useState<Reminder>(loadReminder)
+    weather ? "ready" : "loading",
+  );
+  const [weatherError, setWeatherError] = useState("");
+  const [favourites, setFavourites] = useState<Favourite[]>(loadFavourites);
+  const [pendingRemoval, setPendingRemoval] = useState<City | null>(null);
+  const [storageBlocked, setStorageBlocked] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [settings, setSettings] = useState<Settings>(loadSettings);
+  const [reminder, setReminder] = useState<Reminder>(loadReminder);
   const [notificationState, setNotificationState] =
-    useState<NotificationState>(getNotificationState)
+    useState<NotificationState>(getNotificationState);
   const [systemDark, setSystemDark] = useState(
-    () => window.matchMedia('(prefers-color-scheme: dark)').matches,
-  )
-  const [isOnline, setIsOnline] = useState(() => navigator.onLine)
-  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
-  const requestRef = useRef<AbortController | null>(null)
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
+  );
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+  const [installPrompt, setInstallPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
+  const requestRef = useRef<AbortController | null>(null);
   /* Keep the first city stable for the initial request despite later searches. */
-  const initialCityRef = useRef(city)
-  const hadCacheRef = useRef(Boolean(weather))
-  const unit: Unit = settings.unit
+  const initialCityRef = useRef(city);
+  const hadCacheRef = useRef(Boolean(weather));
+  const unit: Unit = settings.unit;
   /* "system" resolves through state so the toggle label follows OS changes. */
   const isDark =
-    settings.theme === 'dark' || (settings.theme === 'system' && systemDark)
+    settings.theme === "dark" || (settings.theme === "system" && systemDark);
 
   const loadWeather = useCallback(async (nextCity: City, silent = false) => {
     /* A newer selection wins: cancel the request that is still in flight. */
-    requestRef.current?.abort()
-    const controller = new AbortController()
-    requestRef.current = controller
+    requestRef.current?.abort();
+    const controller = new AbortController();
+    requestRef.current = controller;
 
-    setCity(nextCity)
-    setNotice('')
-    if (!silent) setWeatherStatus('loading')
-    setWeatherError('')
+    setCity(nextCity);
+    setNotice("");
+    if (!silent) setWeatherStatus("loading");
+    setWeatherError("");
 
     try {
-      const snapshot = await getWeather(nextCity, controller.signal)
-      if (controller.signal.aborted) return
+      const snapshot = await getWeather(nextCity, controller.signal);
+      if (controller.signal.aborted) return;
 
-      setWeather(snapshot)
-      setWeatherStatus('ready')
-      writeStorage(STORAGE_KEYS.lastCity, nextCity)
+      setWeather(snapshot);
+      setWeatherStatus("ready");
+      writeStorage(STORAGE_KEYS.lastCity, nextCity);
     } catch (error) {
-      if (isCanceled(error) || controller.signal.aborted) return
+      if (isCanceled(error) || controller.signal.aborted) return;
 
       if (silent) {
-        setNotice(MESSAGES.refreshFailed)
-        return
+        setNotice(MESSAGES.refreshFailed);
+        return;
       }
 
-      setWeatherError((error as ApiError).message || MESSAGES.network)
-      setWeatherStatus('error')
+      setWeatherError((error as ApiError).message || MESSAGES.network);
+      setWeatherStatus("error");
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    if (!navigator.onLine) return
+    if (!navigator.onLine) return;
 
-    const controller = new AbortController()
-    requestRef.current = controller
+    const controller = new AbortController();
+    requestRef.current = controller;
 
     /* Refresh the cached/last city in the background on first load. */
     async function loadInitialWeather() {
       try {
-        const snapshot = await getWeather(initialCityRef.current, controller.signal)
-        if (controller.signal.aborted) return
+        const snapshot = await getWeather(
+          initialCityRef.current,
+          controller.signal,
+        );
+        if (controller.signal.aborted) return;
 
-        setWeather(snapshot)
-        setWeatherStatus('ready')
-        writeStorage(STORAGE_KEYS.lastCity, initialCityRef.current)
+        setWeather(snapshot);
+        setWeatherStatus("ready");
+        writeStorage(STORAGE_KEYS.lastCity, initialCityRef.current);
       } catch (error) {
-        if (isCanceled(error) || controller.signal.aborted) return
+        if (isCanceled(error) || controller.signal.aborted) return;
 
         if (hadCacheRef.current) {
-          setNotice(MESSAGES.refreshFailed)
-          return
+          setNotice(MESSAGES.refreshFailed);
+          return;
         }
 
-        setWeatherError((error as ApiError).message || MESSAGES.network)
-        setWeatherStatus('error')
+        setWeatherError((error as ApiError).message || MESSAGES.network);
+        setWeatherStatus("error");
       }
     }
 
-    void loadInitialWeather()
-    return () => controller.abort()
-  }, [])
+    void loadInitialWeather();
+    return () => controller.abort();
+  }, []);
 
   /* Real connection changes: refresh quietly when back online, keep cache offline. */
   useEffect(() => {
     function handleOnline() {
-      setIsOnline(true)
-      void loadWeather(city, Boolean(weather))
+      setIsOnline(true);
+      void loadWeather(city, Boolean(weather));
     }
 
     function handleOffline() {
-      setIsOnline(false)
-      requestRef.current?.abort()
-      if (weather) setWeatherStatus('ready')
+      setIsOnline(false);
+      requestRef.current?.abort();
+      if (weather) setWeatherStatus("ready");
     }
 
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [city, weather, loadWeather])
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [city, weather, loadWeather]);
 
   /* Browsers fire this when the app meets the install criteria. */
   useEffect(() => {
     function handlePrompt(event: Event) {
-      event.preventDefault()
-      setInstallPrompt(event as BeforeInstallPromptEvent)
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
     }
 
     function handleInstalled() {
-      setInstallPrompt(null)
+      setInstallPrompt(null);
     }
 
-    window.addEventListener('beforeinstallprompt', handlePrompt)
-    window.addEventListener('appinstalled', handleInstalled)
+    window.addEventListener("beforeinstallprompt", handlePrompt);
+    window.addEventListener("appinstalled", handleInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handlePrompt)
-      window.removeEventListener('appinstalled', handleInstalled)
-    }
-  }, [])
+      window.removeEventListener("beforeinstallprompt", handlePrompt);
+      window.removeEventListener("appinstalled", handleInstalled);
+    };
+  }, []);
 
   /* Keep the service worker's timer in step with the saved reminder. */
   useEffect(() => {
-    void syncReminderWithWorker(reminder)
-  }, [reminder])
+    void syncReminderWithWorker(reminder);
+  }, [reminder]);
 
   useEffect(() => {
-    const media = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = (event: MediaQueryListEvent) => setSystemDark(event.matches)
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (event: MediaQueryListEvent) =>
+      setSystemDark(event.matches);
 
-    media.addEventListener('change', handleChange)
-    return () => media.removeEventListener('change', handleChange)
-  }, [])
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, []);
 
   /* The class drives every `dark:` style; `system` follows the OS setting. */
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark)
+    document.documentElement.classList.toggle("dark", isDark);
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute('content', isDark ? '#0b1219' : '#eef2f6')
-  }, [isDark])
+      ?.setAttribute("content", isDark ? "#0b1219" : "#eef2f6");
+  }, [isDark]);
 
   /* Preview overrides the real data so reviewers can inspect every state. */
-  const isLoading = preview === 'loading' || (preview !== 'error' && weatherStatus === 'loading')
-  const isError = preview === 'error' || weatherStatus === 'error'
-  const isStale = weather?.isStale ?? false
-  const offlineEmpty = !isOnline && !weather && preview !== 'loading' && preview !== 'error'
+  const isLoading =
+    preview === "loading" ||
+    (preview !== "error" && weatherStatus === "loading");
+  const isError = preview === "error" || weatherStatus === "error";
+  const isStale = weather?.isStale ?? false;
+  const offlineEmpty =
+    !isOnline && !weather && preview !== "loading" && preview !== "error";
   const isFavourite = weather
     ? favourites.some((item) => isSameCity(item.city, weather.city))
-    : false
+    : false;
 
   /* Settings are tiny, so one object is persisted whenever either value changes. */
   function updateSettings(patch: Partial<Settings>) {
-    const next = { ...settings, ...patch }
-    setSettings(next)
-    writeStorage(STORAGE_KEYS.settings, next)
+    const next = { ...settings, ...patch };
+    setSettings(next);
+    writeStorage(STORAGE_KEYS.settings, next);
   }
 
   async function installApp() {
-    if (!installPrompt) return
-    await installPrompt.prompt()
-    setInstallPrompt(null)
+    if (!installPrompt) return;
+    await installPrompt.prompt();
+    setInstallPrompt(null);
   }
 
   function persistReminder(next: Reminder) {
-    setReminder(next)
-    writeStorage(STORAGE_KEYS.reminder, next)
+    setReminder(next);
+    writeStorage(STORAGE_KEYS.reminder, next);
   }
 
   /* Permission is requested only after the explanation in the sidebar. */
   async function enableReminder() {
-    const permission = await requestNotificationPermission()
-    setNotificationState(permission)
+    const permission = await requestNotificationPermission();
+    setNotificationState(permission);
 
-    if (permission === 'unsupported') {
-      setNotice(MESSAGES.notificationsUnsupported)
-      return
+    if (permission === "unsupported") {
+      setNotice(MESSAGES.notificationsUnsupported);
+      return;
     }
-    if (permission !== 'granted') {
-      setNotice(MESSAGES.notificationsBlocked)
-      return
+    if (permission !== "granted") {
+      setNotice(MESSAGES.notificationsBlocked);
+      return;
     }
 
-    persistReminder({ ...reminder, enabled: true })
-    setNotice('')
+    persistReminder({ ...reminder, enabled: true });
+    setNotice("");
   }
 
   function disableReminder() {
-    persistReminder({ ...reminder, enabled: false })
-    setNotice('')
+    persistReminder({ ...reminder, enabled: false });
+    setNotice("");
   }
 
   function changeReminderTime(time: string) {
-    persistReminder({ ...reminder, time })
+    persistReminder({ ...reminder, time });
   }
 
   async function sendTestReminder() {
     try {
-      const shown = await showTestNotification(reminder)
-      if (!shown) setNotice(MESSAGES.notificationsUnsupported)
+      const shown = await showTestNotification(reminder);
+      if (!shown) setNotice(MESSAGES.notificationsUnsupported);
     } catch {
-      setNotice(MESSAGES.notificationsBlocked)
+      setNotice(MESSAGES.notificationsBlocked);
     }
   }
 
   function retryWeather() {
-    if (preview === 'error') {
-      setPreview('live')
-      return
+    if (preview === "error") {
+      setPreview("live");
+      return;
     }
-    void loadWeather(city)
+    void loadWeather(city);
   }
 
   /* Storage failures keep working in memory for this session and show a notice. */
   function persistFavourites(next: Favourite[]) {
-    setFavourites(next)
-    setStorageBlocked(!writeStorage(STORAGE_KEYS.favourites, next))
+    setFavourites(next);
+    setStorageBlocked(!writeStorage(STORAGE_KEYS.favourites, next));
   }
 
   function removeFavourite(cityToRemove: City) {
-    persistFavourites(favourites.filter((item) => !isSameCity(item.city, cityToRemove)))
-    setNotice('')
+    persistFavourites(
+      favourites.filter((item) => !isSameCity(item.city, cityToRemove)),
+    );
+    setNotice("");
   }
 
   function toggleFavourite() {
-    if (!weather) return
+    if (!weather) return;
 
     if (isFavourite) {
       /* Removal always goes through the confirm dialog. */
-      setPendingRemoval(weather.city)
-      return
+      setPendingRemoval(weather.city);
+      return;
     }
 
     if (favourites.length >= MAX_FAVOURITES) {
-      setNotice(MESSAGES.favouritesFull)
-      return
+      setNotice(MESSAGES.favouritesFull);
+      return;
     }
 
-    persistFavourites([...favourites, { city: weather.city, addedAt: Date.now() }])
-    setNotice('')
+    persistFavourites([
+      ...favourites,
+      { city: weather.city, addedAt: Date.now() },
+    ]);
+    setNotice("");
   }
 
   return (
@@ -351,7 +371,6 @@ export default function App() {
           onEnableReminder={() => void enableReminder()}
           onDisableReminder={disableReminder}
           onTimeChange={changeReminderTime}
-          onSendTest={() => void sendTestReminder()}
         />
 
         <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-10 lg:py-8">
@@ -362,22 +381,26 @@ export default function App() {
               <div className="flex items-center rounded-lg border border-line bg-card p-1 shadow-card">
                 <button
                   type="button"
-                  onClick={() => updateSettings({ unit: 'celsius' })}
-                  aria-pressed={unit === 'celsius'}
+                  onClick={() => updateSettings({ unit: "celsius" })}
+                  aria-pressed={unit === "celsius"}
                   className={cn(
-                    'min-h-11 min-w-11 rounded-md px-3 text-xs font-semibold transition-colors',
-                    unit === 'celsius' ? 'bg-ink text-page' : 'text-muted hover:text-ink',
+                    "min-h-11 min-w-11 rounded-md px-3 text-xs font-semibold transition-colors",
+                    unit === "celsius"
+                      ? "bg-ink text-page"
+                      : "text-muted hover:text-ink",
                   )}
                 >
                   {UNIT_LABELS.celsius}
                 </button>
                 <button
                   type="button"
-                  onClick={() => updateSettings({ unit: 'fahrenheit' })}
-                  aria-pressed={unit === 'fahrenheit'}
+                  onClick={() => updateSettings({ unit: "fahrenheit" })}
+                  aria-pressed={unit === "fahrenheit"}
                   className={cn(
-                    'min-h-11 min-w-11 rounded-md px-3 text-xs font-semibold transition-colors',
-                    unit === 'fahrenheit' ? 'bg-ink text-page' : 'text-muted hover:text-ink',
+                    "min-h-11 min-w-11 rounded-md px-3 text-xs font-semibold transition-colors",
+                    unit === "fahrenheit"
+                      ? "bg-ink text-page"
+                      : "text-muted hover:text-ink",
                   )}
                 >
                   {UNIT_LABELS.fahrenheit}
@@ -386,9 +409,13 @@ export default function App() {
 
               <button
                 type="button"
-                onClick={() => updateSettings({ theme: isDark ? 'light' : 'dark' })}
-                aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                onClick={() =>
+                  updateSettings({ theme: isDark ? "light" : "dark" })
+                }
+                aria-label={
+                  isDark ? "Switch to light mode" : "Switch to dark mode"
+                }
+                title={isDark ? "Switch to light mode" : "Switch to dark mode"}
                 className="grid size-11 place-items-center rounded-lg border border-line bg-card text-ink shadow-card transition-colors hover:bg-panel"
               >
                 {isDark ? (
@@ -419,22 +446,25 @@ export default function App() {
               </div>
             )}
 
-            {weather && (preview === 'offline' || !isOnline) && (
+            {weather && (preview === "offline" || !isOnline) && (
               <div className="mb-5">
-                <OfflineBanner updatedAt={weather.current.updatedAt} isStale={isStale} />
+                <OfflineBanner
+                  updatedAt={weather.current.updatedAt}
+                  isStale={isStale}
+                />
               </div>
             )}
 
-            {preview === 'blocked' && (
+            {preview === "blocked" && (
               <div className="mb-5">
                 <NotificationBlockedBanner />
               </div>
             )}
 
             {/* Forced previews first, then real offline/loading/error states. */}
-            {preview === 'loading' ? (
+            {preview === "loading" ? (
               <WeatherSkeleton />
-            ) : preview === 'error' ? (
+            ) : preview === "error" ? (
               <FetchError message={MESSAGES.network} onRetry={retryWeather} />
             ) : offlineEmpty ? (
               <OfflineEmpty />
@@ -460,7 +490,11 @@ export default function App() {
               )
             )}
 
-            <PreviewBar value={preview} onChange={setPreview} />
+            <PreviewBar
+              value={preview}
+              onChange={setPreview}
+              onSendTest={() => void sendTestReminder()}
+            />
           </div>
         </main>
       </div>
@@ -472,11 +506,11 @@ export default function App() {
           confirmLabel="Remove"
           onCancel={() => setPendingRemoval(null)}
           onConfirm={() => {
-            removeFavourite(pendingRemoval)
-            setPendingRemoval(null)
+            removeFavourite(pendingRemoval);
+            setPendingRemoval(null);
           }}
         />
       )}
     </div>
-  )
+  );
 }

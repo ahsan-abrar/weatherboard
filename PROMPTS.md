@@ -113,3 +113,15 @@
 ## 2026-11-13 17:06:44 PKT
 
 > currently "Send test notification" button in sidebar move this button in "Preview states"
+
+## 2026-11-13 17:14:13 PKT
+
+> why sending two request per api, same api with same response then why two api call and in forecast api why too much data in response are we need that much data?
+
+## 2026-11-13 17:19:43 PKT
+
+> I already tested this in prod, as you mention is only happening on dev then why happending on prod
+
+## 2026-11-13 17:46:05 PKT
+
+> run npm lint and npm build
