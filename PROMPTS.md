@@ -114,18 +114,6 @@
 
 > currently "Send test notification" button in sidebar move this button in "Preview states"
 
-## 2026-11-13 17:14:13 PKT
-
-> why sending two request per api, same api with same response then why two api call and in forecast api why too much data in response are we need that much data?
-
-## 2026-11-13 17:19:43 PKT
-
-> I already tested this in prod, as you mention is only happening on dev then why happending on prod
-
-## 2026-11-13 17:46:05 PKT
-
-> run npm lint and npm build
-
 ## 2026-11-13 18:44:22 PKT
 
 > now let's say if I schedule the notification to 6:35 then notification not show and then go and select 6:38 and current time is 6:37 then notifcation show
@@ -137,3 +125,7 @@
 ## 2026-11-13 20:03:44 PKT
 
 > currently I am noticing the app icon is not consist, please make sure icon is consist throughout the app
+
+## 2026-11-13 22:53:30 PKT
+
+> make gradient bars easy to understand and add a incidator how that works

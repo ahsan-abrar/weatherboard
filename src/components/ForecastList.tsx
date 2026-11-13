@@ -24,13 +24,29 @@ function getRangePosition(day: ForecastDay, forecast: ForecastDay[]) {
 export function ForecastList({ forecast, unit }: ForecastListProps) {
   return (
     <section className="mt-10">
-      <h2 className="font-display text-3xl">Next 5 days</h2>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <h2 className="font-display text-3xl">Next 5 days</h2>
+
+        {/* The colour is tied to the shared 5-day scale, not each row's own range. */}
+        <div
+          className="flex items-center gap-2 pb-1 text-[11px] text-muted"
+          aria-label="Temperature colour scale from cooler to warmer"
+        >
+          <span>Cooler</span>
+          <span
+            className="h-1.5 w-20 rounded-full bg-gradient-to-r from-cool via-mid to-warm"
+            aria-hidden="true"
+          />
+          <span>Warmer</span>
+        </div>
+      </div>
 
       {/* One shared window keeps every day's bar comparable. */}
       <div className="mt-3">
         {forecast.map((day, index) => {
           const condition = CONDITIONS[day.condition as keyof typeof CONDITIONS] ?? CONDITIONS.clear
           const range = getRangePosition(day, forecast)
+          const width = Math.max(range.width, 1.2)
 
           return (
             <div
@@ -49,11 +65,23 @@ export function ForecastList({ forecast, unit }: ForecastListProps) {
                 {toDisplayTemp(day.minC, unit)}°
               </span>
 
-              <div className="h-1.5 overflow-hidden rounded-full bg-line/70">
+              <div className="h-2 overflow-hidden rounded-full bg-line/60">
+                {/*
+                  The inner gradient spans the full track and is shifted/clipped
+                  by the segment wrapper, so 24° looks the same on every row.
+                */}
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-cool via-mid to-warm"
-                  style={{ marginLeft: `${range.left}%`, width: `${range.width}%` }}
-                />
+                  className="relative h-full overflow-hidden rounded-full"
+                  style={{ marginLeft: `${range.left}%`, width: `${width}%` }}
+                >
+                  <div
+                    className="absolute inset-y-0 bg-gradient-to-r from-cool via-mid to-warm"
+                    style={{
+                      left: `${-(range.left / width) * 100}%`,
+                      width: `${10000 / width}%`,
+                    }}
+                  />
+                </div>
               </div>
 
               <span className="text-right text-xs font-medium tabular-nums sm:text-sm">
