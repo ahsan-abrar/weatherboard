@@ -129,3 +129,7 @@
 ## 2026-11-13 22:53:30 PKT
 
 > make gradient bars easy to understand and add a incidator how that works
+
+## 2026-11-13 23:32:57 PKT
+
+> I googled the karachi weather, why this much difference in result of karachi weather?
