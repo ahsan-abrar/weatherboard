@@ -7,6 +7,7 @@ interface StatsCardProps {
 }
 
 export function StatsCard({ current, unit }: StatsCardProps) {
+  /* Stored values stay Celsius; conversion happens only for display. */
   const wind = toDisplayWind(current.windKph, unit)
 
   const stats = [

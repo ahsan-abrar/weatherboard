@@ -19,6 +19,7 @@ export function CurrentWeather({
   isFavourite,
   onToggleFavourite,
 }: CurrentWeatherProps) {
+  /* Both providers map their codes to the shared condition keys in constants. */
   const condition = CONDITIONS[current.condition as keyof typeof CONDITIONS] ?? CONDITIONS.clear
   const temperature = toDisplayTemp(current.tempC, unit)
 
@@ -34,6 +35,7 @@ export function CurrentWeather({
           <h1 className="font-display text-6xl leading-none tracking-tight sm:text-7xl">
             {city.name}
           </h1>
+          {/* Toggling off asks for confirmation through the App handler. */}
           <button
             type="button"
             onClick={onToggleFavourite}

@@ -64,6 +64,7 @@ src/
     api/index.ts        # search/weather calls + provider fallback + cache
     api/client.ts       # Axios clients
     api/interceptors.ts # error normalisation + GeoDB headers
+    notifications/index.ts # permission, test notification, worker sync
   components/
     Sidebar.tsx       # brand, favourites panel, reminder card
     SearchBar.tsx     # input, suggestions, validation message
@@ -71,9 +72,9 @@ src/
     StatsCard.tsx     # humidity / wind / high / low
     ForecastList.tsx  # 5-day rows + temperature range bars
     Banners.tsx       # loading, error, offline, no-results, preview-states bar
-  sw.ts               # service worker (caching + notification)
 public/
   icons/              # 192, 512, maskable icons
+  notification-sw.js  # reminder scheduling + notification click handling
 ```
 
 No Redux, no router, no per-feature folders. `App.tsx` owns state; components receive props.

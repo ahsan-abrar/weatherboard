@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import { AlertCircle, Loader2, MapPin, Search, SearchX } from 'lucide-react'
+import { AlertCircle, Loader2, MapPin, Search, SearchX, X } from 'lucide-react'
 import { isCanceled, searchCities } from '../lib/api'
 import { MESSAGES, SEARCH_DEBOUNCE_MS } from '../lib/constants'
 import type { ApiError, City } from '../lib/types'
@@ -12,6 +12,7 @@ interface SearchBarProps {
 type SearchStatus = 'idle' | 'loading' | 'done' | 'error'
 
 export function SearchBar({ onSelect }: SearchBarProps) {
+  /* The combobox owns its own state; App only receives the chosen city. */
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<City[]>([])
   const [status, setStatus] = useState<SearchStatus>('idle')
@@ -66,9 +67,22 @@ export function SearchBar({ onSelect }: SearchBarProps) {
     onSelect(city)
   }
 
+  /* Clearing keeps focus in the field so the user can type a new city. */
+  function clearSearch() {
+    setQuery('')
+    setSelectedCity(null)
+    setSuggestions([])
+    setStatus('idle')
+    setError('')
+    setValidation('')
+    setIsOpen(false)
+    inputRef.current?.focus()
+  }
+
   function validateBlur() {
     const term = query.trim()
 
+    /* Blur mirrors submit so the message appears before the user presses Enter. */
     if (!term) return setValidation(MESSAGES.emptyCity)
     if (selectedCity) return setValidation('')
     if (status === 'loading') return setValidation(MESSAGES.selectCity)
@@ -95,6 +109,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    /* Arrow keys move through results; Enter picks the active one. */
     if (event.key === 'ArrowDown') {
       event.preventDefault()
       setIsOpen(true)
@@ -125,6 +140,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
   }
 
   const term = query.trim()
+  /* Results stay open until a city is picked or Escape closes the list. */
   const showDropdown = isOpen && term.length > 0
 
   return (
@@ -133,6 +149,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
         <label htmlFor="city-search" className="sr-only">
           Search a city
         </label>
+        {/* Combobox ARIA keeps screen readers in sync with the visual list. */}
         <Search
           size={18}
           className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted"
@@ -183,9 +200,20 @@ export function SearchBar({ onSelect }: SearchBarProps) {
             validation ? 'border-danger/60' : 'border-line focus:border-brand/50',
           )}
         />
-        <span className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md border border-line bg-panel px-2 py-1 text-[11px] font-medium text-muted">
-          Enter
-        </span>
+        {query ? (
+          <button
+            type="button"
+            onClick={clearSearch}
+            aria-label="Clear search"
+            className="absolute top-1/2 right-1.5 grid size-11 -translate-y-1/2 place-items-center rounded-lg text-muted transition-colors hover:text-ink"
+          >
+            <X size={16} aria-hidden="true" />
+          </button>
+        ) : (
+          <span className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md border border-line bg-panel px-2 py-1 text-[11px] font-medium text-muted">
+            Enter
+          </span>
+        )}
 
         {showDropdown && (
           <div

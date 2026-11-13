@@ -26,6 +26,7 @@ export function ForecastList({ forecast, unit }: ForecastListProps) {
     <section className="mt-10">
       <h2 className="font-display text-3xl">Next 5 days</h2>
 
+      {/* One shared window keeps every day's bar comparable. */}
       <div className="mt-3">
         {forecast.map((day, index) => {
           const condition = CONDITIONS[day.condition as keyof typeof CONDITIONS] ?? CONDITIONS.clear

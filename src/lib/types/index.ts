@@ -1,6 +1,7 @@
 export type Unit = 'celsius' | 'fahrenheit'
 export type ThemeMode = 'light' | 'dark' | 'system'
 
+/** A place returned by GeoDB or Open-Meteo geocoding. */
 export interface City {
   id?: string
   name: string
@@ -10,6 +11,7 @@ export interface City {
   lon: number
 }
 
+/** Current conditions, always stored in Celsius and km/h. */
 export interface CurrentWeather {
   tempC: number
   feelsLikeC: number
@@ -22,6 +24,7 @@ export interface CurrentWeather {
   updatedAt: number
 }
 
+/** One daily row; `condition` is one of the shared keys in constants. */
 export interface ForecastDay {
   date: string
   condition: string
@@ -30,6 +33,7 @@ export interface ForecastDay {
   maxC: number
 }
 
+/** Everything the dashboard needs for one city, including the cache flag. */
 export interface WeatherSnapshot {
   city: City
   current: CurrentWeather
@@ -48,6 +52,7 @@ export interface Reminder {
   time: string
 }
 
+/** Favourites store the full city so they work without another search. */
 export interface Favourite {
   city: City
   addedAt: number
@@ -56,6 +61,7 @@ export interface Favourite {
 /** `live` is the normal app; the others are forced by the preview bar. */
 export type PreviewState = 'live' | 'loading' | 'error' | 'offline' | 'blocked'
 
+/** One friendly shape for every API, network and cancellation failure. */
 export interface ApiError {
   message: string
   kind: 'network' | 'not-found' | 'rate-limit' | 'server' | 'canceled' | 'unknown'

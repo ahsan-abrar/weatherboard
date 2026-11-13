@@ -8,9 +8,11 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    /* Installable PWA: precaches the shell and caches weather/font responses. */
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
+      /* Manifest fields required for installability on mobile and desktop. */
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'WeatherBoard',
@@ -43,6 +45,8 @@ export default defineConfig({
       },
       workbox: {
         cleanupOutdatedCaches: true,
+        /* Registers reminder + notification click handlers alongside Workbox. */
+        importScripts: ['notification-sw.js'],
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         navigateFallback: 'index.html',
         runtimeCaching: [

@@ -68,16 +68,6 @@ export function formatReminderTime(time: string) {
   return `${String(displayHour).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${suffix}`
 }
 
-/** Keep calls from firing on every keystroke. */
-export function debounce<Args extends unknown[]>(fn: (...args: Args) => void, delay: number) {
-  let timer: ReturnType<typeof setTimeout> | undefined
-
-  return (...args: Args) => {
-    clearTimeout(timer)
-    timer = setTimeout(() => fn(...args), delay)
-  }
-}
-
 /** Same place can come back from different providers with different ids. */
 export function isSameCity(first: City, second: City) {
   if (first.id && second.id && first.id === second.id) return true

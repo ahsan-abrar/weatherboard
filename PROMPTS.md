@@ -55,3 +55,25 @@
 
 ## 2026-11-13 15:28:12 PKT
 > go ahead
+
+## 2026-11-13 15:43:55 PKT
+> I noticed you're not added comments, you need to add proper short and understandable comments.
+>
+> PWA working fine and let's move to next step
+
+## 2026-11-13 16:01:58 PKT
+> here is my feedback, please work on these
+>
+> - in search field add a cross icon to clear the fiels
+> - all clickable items should be pointer cursor
+> - move to "Morning reminder" section top and "Favourites" section below the "Morning reminder"
+> - improve the "Remind me at" ui
+> - when user click the button "Allow notifications" then open the browser notitification permission modal for user
+> - user user click on the notification it should be navigate to the web
+
+## 2026-11-13 16:08:46 PKT
+> - on remind me nothing happen when I l clicked on time
+> - currently we are using native modal when removing favorite, please create a modal with consist with our design language
+
+## 2026-11-13 16:16:12 PKT
+> - please improve the select time ui, currently when I click on time the modal of time open to the left side

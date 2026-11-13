@@ -59,6 +59,7 @@ export function OfflineBanner({
   updatedAt?: number
   isStale?: boolean
 }) {
+  /* The timestamp tells the user how old the saved snapshot is. */
   return (
     <div
       role="status"
@@ -79,6 +80,7 @@ export function OfflineBanner({
 }
 
 export function OfflineEmpty() {
+  /* No cached city yet: explain the situation instead of showing a spinner. */
   return (
     <section className="rounded-card border border-line bg-card px-6 py-16 text-center shadow-card">
       <WifiOff size={36} className="mx-auto text-muted" aria-hidden="true" />
@@ -91,6 +93,7 @@ export function OfflineEmpty() {
 }
 
 export function NotificationBlockedBanner() {
+  /* Denied permission gets a clear explanation without disabling the app. */
   return (
     <div
       role="status"
@@ -121,6 +124,7 @@ export function FetchError({
   message?: string
   onRetry: () => void
 }) {
+  /* Every failed fetch lands here with the provider's friendly message. */
   return (
     <section
       role="alert"

@@ -85,6 +85,13 @@
     outline-offset: 2px;
   }
 
+  /* Tailwind v4 leaves buttons with the default cursor; make every control feel clickable. */
+  button:not(:disabled),
+  [role='button']:not(:disabled),
+  input[type='time'] {
+    cursor: pointer;
+  }
+
   /* Keep motion subtle and let users opt out of it. */
   @media (prefers-reduced-motion: reduce) {
     *,

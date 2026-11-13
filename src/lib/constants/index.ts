@@ -44,11 +44,6 @@ export const API = {
   },
 } as const
 
-export const DEFAULT_SETTINGS = {
-  unit: 'celsius',
-  theme: 'system',
-} as const
-
 export const DEFAULT_REMINDER = {
   enabled: false,
   time: '07:30',

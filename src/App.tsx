@@ -14,10 +14,18 @@ import type {
   City,
   Favourite,
   PreviewState,
+  Reminder,
   Settings,
   Unit,
   WeatherSnapshot,
 } from './lib/types'
+import {
+  getNotificationState,
+  requestNotificationPermission,
+  showTestNotification,
+  syncReminderWithWorker,
+  type NotificationState,
+} from './lib/notifications'
 import { cn, isSameCity, readStorage, writeStorage } from './lib/utils'
 import {
   FetchError,
@@ -29,6 +37,7 @@ import {
   WeatherSkeleton,
 } from './components/Banners'
 import { CurrentWeather } from './components/CurrentWeather'
+import { ConfirmDialog } from './components/ConfirmDialog'
 import { ForecastList } from './components/ForecastList'
 import { SearchBar } from './components/SearchBar'
 import { Sidebar } from './components/Sidebar'
@@ -48,6 +57,7 @@ function loadFavourites(): Favourite[] {
   return stored.filter((item) => Boolean(item?.city?.name)).slice(0, MAX_FAVOURITES)
 }
 
+/** Fall back to safe defaults when settings are missing or invalid. */
 function loadSettings(): Settings {
   const stored = readStorage<Settings>(STORAGE_KEYS.settings)
   return {
@@ -57,8 +67,20 @@ function loadSettings(): Settings {
   }
 }
 
+/** Only a real "HH:MM" value is accepted; anything else becomes the default time. */
+function loadReminder(): Reminder {
+  const stored = readStorage<Reminder>(STORAGE_KEYS.reminder)
+  const validTime = stored?.time && /^\d{2}:\d{2}$/.test(stored.time)
+
+  return {
+    enabled: Boolean(stored?.enabled),
+    time: validTime ? stored.time : DEFAULT_REMINDER.time,
+  }
+}
+
 export default function App() {
   const [preview, setPreview] = useState<PreviewState>('live')
+  /* Cache-first: the last snapshot paints immediately, then gets refreshed. */
   const [weather, setWeather] = useState<WeatherSnapshot | null>(readCachedWeather)
   const [city, setCity] = useState<City>(
     () => weather?.city ?? readStorage<City>(STORAGE_KEYS.lastCity) ?? DEFAULT_CITY,
@@ -68,18 +90,24 @@ export default function App() {
   )
   const [weatherError, setWeatherError] = useState('')
   const [favourites, setFavourites] = useState<Favourite[]>(loadFavourites)
+  const [pendingRemoval, setPendingRemoval] = useState<City | null>(null)
   const [storageBlocked, setStorageBlocked] = useState(false)
   const [notice, setNotice] = useState('')
   const [settings, setSettings] = useState<Settings>(loadSettings)
+  const [reminder, setReminder] = useState<Reminder>(loadReminder)
+  const [notificationState, setNotificationState] =
+    useState<NotificationState>(getNotificationState)
   const [systemDark, setSystemDark] = useState(
     () => window.matchMedia('(prefers-color-scheme: dark)').matches,
   )
   const [isOnline, setIsOnline] = useState(() => navigator.onLine)
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const requestRef = useRef<AbortController | null>(null)
+  /* Keep the first city stable for the initial request despite later searches. */
   const initialCityRef = useRef(city)
   const hadCacheRef = useRef(Boolean(weather))
   const unit: Unit = settings.unit
+  /* "system" resolves through state so the toggle label follows OS changes. */
   const isDark =
     settings.theme === 'dark' || (settings.theme === 'system' && systemDark)
 
@@ -120,6 +148,7 @@ export default function App() {
     const controller = new AbortController()
     requestRef.current = controller
 
+    /* Refresh the cached/last city in the background on first load. */
     async function loadInitialWeather() {
       try {
         const snapshot = await getWeather(initialCityRef.current, controller.signal)
@@ -187,6 +216,11 @@ export default function App() {
     }
   }, [])
 
+  /* Keep the service worker's timer in step with the saved reminder. */
+  useEffect(() => {
+    void syncReminderWithWorker(reminder)
+  }, [reminder])
+
   useEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)')
     const handleChange = (event: MediaQueryListEvent) => setSystemDark(event.matches)
@@ -203,6 +237,7 @@ export default function App() {
       ?.setAttribute('content', isDark ? '#0b1219' : '#eef2f6')
   }, [isDark])
 
+  /* Preview overrides the real data so reviewers can inspect every state. */
   const isLoading = preview === 'loading' || (preview !== 'error' && weatherStatus === 'loading')
   const isError = preview === 'error' || weatherStatus === 'error'
   const isStale = weather?.isStale ?? false
@@ -211,6 +246,7 @@ export default function App() {
     ? favourites.some((item) => isSameCity(item.city, weather.city))
     : false
 
+  /* Settings are tiny, so one object is persisted whenever either value changes. */
   function updateSettings(patch: Partial<Settings>) {
     const next = { ...settings, ...patch }
     setSettings(next)
@@ -221,6 +257,47 @@ export default function App() {
     if (!installPrompt) return
     await installPrompt.prompt()
     setInstallPrompt(null)
+  }
+
+  function persistReminder(next: Reminder) {
+    setReminder(next)
+    writeStorage(STORAGE_KEYS.reminder, next)
+  }
+
+  /* Permission is requested only after the explanation in the sidebar. */
+  async function enableReminder() {
+    const permission = await requestNotificationPermission()
+    setNotificationState(permission)
+
+    if (permission === 'unsupported') {
+      setNotice(MESSAGES.notificationsUnsupported)
+      return
+    }
+    if (permission !== 'granted') {
+      setNotice(MESSAGES.notificationsBlocked)
+      return
+    }
+
+    persistReminder({ ...reminder, enabled: true })
+    setNotice('')
+  }
+
+  function disableReminder() {
+    persistReminder({ ...reminder, enabled: false })
+    setNotice('')
+  }
+
+  function changeReminderTime(time: string) {
+    persistReminder({ ...reminder, time })
+  }
+
+  async function sendTestReminder() {
+    try {
+      const shown = await showTestNotification(reminder)
+      if (!shown) setNotice(MESSAGES.notificationsUnsupported)
+    } catch {
+      setNotice(MESSAGES.notificationsBlocked)
+    }
   }
 
   function retryWeather() {
@@ -238,8 +315,6 @@ export default function App() {
   }
 
   function removeFavourite(cityToRemove: City) {
-    if (!window.confirm(`Remove ${cityToRemove.name} from your favourites?`)) return
-
     persistFavourites(favourites.filter((item) => !isSameCity(item.city, cityToRemove)))
     setNotice('')
   }
@@ -248,7 +323,8 @@ export default function App() {
     if (!weather) return
 
     if (isFavourite) {
-      removeFavourite(weather.city)
+      /* Removal always goes through the confirm dialog. */
+      setPendingRemoval(weather.city)
       return
     }
 
@@ -266,11 +342,16 @@ export default function App() {
       <div className="mx-auto flex min-h-dvh w-full max-w-[1920px] flex-col lg:flex-row">
         <Sidebar
           favourites={favourites}
-          reminder={DEFAULT_REMINDER}
+          reminder={reminder}
+          notificationState={notificationState}
           activeCity={weather?.city}
           storageBlocked={storageBlocked}
           onSelectFavourite={(nextCity) => void loadWeather(nextCity)}
-          onRemoveFavourite={removeFavourite}
+          onRemoveFavourite={setPendingRemoval}
+          onEnableReminder={() => void enableReminder()}
+          onDisableReminder={disableReminder}
+          onTimeChange={changeReminderTime}
+          onSendTest={() => void sendTestReminder()}
         />
 
         <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-10 lg:py-8">
@@ -350,6 +431,7 @@ export default function App() {
               </div>
             )}
 
+            {/* Forced previews first, then real offline/loading/error states. */}
             {preview === 'loading' ? (
               <WeatherSkeleton />
             ) : preview === 'error' ? (
@@ -382,6 +464,19 @@ export default function App() {
           </div>
         </main>
       </div>
+
+      {pendingRemoval && (
+        <ConfirmDialog
+          title="Remove favourite?"
+          message={`${pendingRemoval.name} will be removed from your saved cities. You can save it again later.`}
+          confirmLabel="Remove"
+          onCancel={() => setPendingRemoval(null)}
+          onConfirm={() => {
+            removeFavourite(pendingRemoval)
+            setPendingRemoval(null)
+          }}
+        />
+      )}
     </div>
   )
 }
