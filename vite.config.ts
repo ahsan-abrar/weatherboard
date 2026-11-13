@@ -13,7 +13,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       /* Manifest fields required for installability on mobile and desktop. */
-      includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
+      includeAssets: ['icons/apple-touch-icon.png', 'icons/icon-32.png'],
       manifest: {
         name: 'WeatherBoard',
         short_name: 'WeatherBoard',

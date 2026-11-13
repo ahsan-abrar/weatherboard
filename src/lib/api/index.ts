@@ -314,7 +314,15 @@ function cacheWeather(snapshot: WeatherSnapshot) {
 /** Used by the offline mode step; safe to call before any weather exists. */
 export function readCachedWeather(): WeatherSnapshot | null {
   const cached = readStorage<WeatherSnapshot>(STORAGE_KEYS.cachedWeather)
-  if (!cached) return null
+  /* Treat corrupt or hand-edited cache entries as missing instead of crashing. */
+  if (
+    !cached?.city?.name ||
+    !cached.current ||
+    typeof cached.current.updatedAt !== 'number' ||
+    !Array.isArray(cached.forecast)
+  ) {
+    return null
+  }
 
   return {
     ...cached,

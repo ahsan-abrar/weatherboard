@@ -95,7 +95,10 @@ export function SearchBar({ onSelect }: SearchBarProps) {
     const term = query.trim()
 
     if (!term) return setValidation(MESSAGES.emptyCity)
-    if (selectedCity) return onSelect(selectedCity)
+    if (selectedCity) {
+      setIsOpen(false)
+      return onSelect(selectedCity)
+    }
     if (status === 'loading') return
     if (status === 'error') return setValidation(error)
     if (suggestions.length === 1) return selectCity(suggestions[0])
@@ -140,8 +143,12 @@ export function SearchBar({ onSelect }: SearchBarProps) {
   }
 
   const term = query.trim()
-  /* Results stay open until a city is picked or Escape closes the list. */
-  const showDropdown = isOpen && term.length > 0
+  const selectedLabel = selectedCity
+    ? `${selectedCity.name}, ${selectedCity.country}`
+    : ''
+  /* After a selection, refocusing should not open an empty suggestion box. */
+  const showDropdown =
+    isOpen && term.length > 0 && !(selectedCity && term === selectedLabel)
 
   return (
     <div className="w-full max-w-[520px]">

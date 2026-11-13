@@ -28,7 +28,7 @@ the app, use the last city offline, and get a daily morning reminder.
 - **Responsive** — verified at 375 px, 768 px and 1280 px with no horizontal scroll and 44×44 px touch
   targets on mobile.
 - **Reviewer preview states** — the visible bar can force Offline / Loading / Fetch error / Blocked
-  notifications without waiting for real failures.
+  notifications without waiting for real failures, and includes a “Send test notification” action.
 
 ---
 
@@ -141,14 +141,19 @@ The reminder is implemented with the browser **Notifications API + service worke
 
 - The UI explains what will happen before `Notification.requestPermission()` is called.
 - The chosen time and enabled state are stored and sent to the service worker.
-- The worker saves the schedule in IndexedDB and shows the notification when due.
+- While the app is open, a page-side timer shows the notification at the chosen time, so changing
+  the time immediately reschedules it.
+- The worker saves the schedule in IndexedDB, shows the notification when due, and catches up a
+  missed reminder when it starts again.
+- Where supported (installed PWA in Chromium), periodic background sync wakes the worker to check.
+- Page and worker share an atomic notification slot, so only one notification appears per reminder.
 - Clicking a notification focuses the open app or opens `https://weatherboard-lyart.vercel.app/`.
 - Denied/unsupported permission shows a clear inline fallback and does not break the rest of the app.
 
-**Client-only scheduling cannot be guaranteed when the browser is fully closed.** Browsers may stop a
-service worker at any time, and there is no push service in this project to wake it. The worker
-reschedules when it next starts, and the app re-syncs on every visit. Guaranteed delivery would need a
-push subscription and a small server (or browser-supported periodic background sync where available).
+**Client-only scheduling still cannot be guaranteed when the browser is fully closed.** Browsers may
+stop a service worker at any time, and there is no push service in this project to wake it. The worker
+reschedules and catches up when it next starts, and periodic sync helps where available. Guaranteed
+delivery would need a push subscription and a small server.
 
 ---
 

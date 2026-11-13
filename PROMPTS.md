@@ -125,3 +125,19 @@
 ## 2026-11-13 17:46:05 PKT
 
 > run npm lint and npm build
+
+## 2026-11-13 18:44:22 PKT
+
+> now let's say if I schedule the notification to 6:35 then notification not show and then go and select 6:38 and current time is 6:37 then notifcation show
+
+## 2026-11-13 20:01:37 PKT
+
+> do not show the "Remind me at" if notification toggle is off
+
+## 2026-11-13 20:03:44 PKT
+
+> currently I am noticing the app icon is not consist, please make sure icon is consist throughout the app
+
+## 2026-11-13 20:12:09 PKT
+
+> review the codebase and find unhandle corner cases and any improvement before move to production

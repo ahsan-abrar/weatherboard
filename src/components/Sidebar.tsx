@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { ChevronDown, Clock, CloudSun, Star, X } from 'lucide-react'
+import { ChevronDown, Clock, Star, X } from 'lucide-react'
 import { MAX_FAVOURITES, MESSAGES } from '../lib/constants'
 import type { NotificationState } from '../lib/notifications'
 import type { City, Favourite, Reminder } from '../lib/types'
@@ -69,9 +69,14 @@ export function Sidebar({
     <aside className="flex w-full shrink-0 flex-col border-b border-line bg-panel px-5 py-5 lg:sticky lg:top-0 lg:h-dvh lg:w-72 lg:overflow-y-auto lg:border-r lg:border-b-0 lg:py-6">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="grid size-9 place-items-center rounded-xl bg-brand text-white">
-            <CloudSun size={20} strokeWidth={1.8} />
-          </span>
+          {/* Same asset used by the favicon and installed app icon. */}
+          <img
+            src="/icons/icon-192.png"
+            alt=""
+            width={36}
+            height={36}
+            className="size-9 rounded-xl"
+          />
           <span className="font-display text-2xl tracking-tight">WeatherBoard</span>
         </div>
 
@@ -100,7 +105,7 @@ export function Sidebar({
             <div>
               <p className="text-sm font-semibold">Daily forecast</p>
               <p className="mt-1 text-xs leading-relaxed text-muted">
-                Sent even when the app is closed.
+                Tries even when the tab is closed.
               </p>
             </div>
             <button
@@ -168,34 +173,42 @@ export function Sidebar({
             </div>
           )}
 
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <span className="text-sm">Remind me at</span>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={openTimePicker}
-                aria-label={`Change reminder time, currently ${formatReminderTime(reminder.time)}`}
-                className="flex min-h-11 items-center gap-2 rounded-xl border border-line bg-card px-3.5 text-sm font-medium tabular-nums shadow-sm transition-colors hover:border-muted/50 hover:bg-panel"
-              >
-                <Clock size={15} className="text-muted" aria-hidden="true" />
-                <span>{formatReminderTime(reminder.time)}</span>
-                <ChevronDown size={14} className="text-muted" aria-hidden="true" />
-              </button>
-              {/*
-                The input covers the button so the native picker opens next to it
-                instead of at the top-left of the page.
-              */}
-              <input
-                ref={timeInputRef}
-                type="time"
-                value={reminder.time}
-                onChange={(event) => onTimeChange(event.target.value)}
-                aria-hidden="true"
-                tabIndex={-1}
-                className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
-              />
-            </div>
-          </div>
+          {reminder.enabled && (
+            <>
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <span className="text-sm">Remind me at</span>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={openTimePicker}
+                    aria-label={`Change reminder time, currently ${formatReminderTime(reminder.time)}`}
+                    className="flex min-h-11 items-center gap-2 rounded-xl border border-line bg-card px-3.5 text-sm font-medium tabular-nums shadow-sm transition-colors hover:border-muted/50 hover:bg-panel"
+                  >
+                    <Clock size={15} className="text-muted" aria-hidden="true" />
+                    <span>{formatReminderTime(reminder.time)}</span>
+                    <ChevronDown size={14} className="text-muted" aria-hidden="true" />
+                  </button>
+                  {/*
+                    The input covers the button so the native picker opens next to it
+                    instead of at the top-left of the page.
+                  */}
+                  <input
+                    ref={timeInputRef}
+                    type="time"
+                    value={reminder.time}
+                    onChange={(event) => onTimeChange(event.target.value)}
+                    aria-hidden="true"
+                    tabIndex={-1}
+                    className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
+                  />
+                </div>
+              </div>
+
+              <p className="mt-1.5 text-right text-[11px] leading-relaxed text-muted">
+                A time that has already passed today is scheduled for tomorrow.
+              </p>
+            </>
+          )}
         </div>
 
         <div className="mt-9">

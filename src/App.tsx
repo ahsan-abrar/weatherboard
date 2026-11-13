@@ -21,7 +21,10 @@ import type {
 } from "./lib/types";
 import {
   getNotificationState,
+  millisecondsUntil,
+  registerPeriodicReminderSync,
   requestNotificationPermission,
+  showDailyReminderNotification,
   showTestNotification,
   syncReminderWithWorker,
   type NotificationState,
@@ -147,6 +150,9 @@ export default function App() {
 
       setWeatherError((error as ApiError).message || MESSAGES.network);
       setWeatherStatus("error");
+    } finally {
+      // Clear the marker so a later online event does not race this request.
+      if (requestRef.current === controller) requestRef.current = null;
     }
   }, []);
 
@@ -178,6 +184,8 @@ export default function App() {
 
         setWeatherError((error as ApiError).message || MESSAGES.network);
         setWeatherStatus("error");
+      } finally {
+        if (requestRef.current === controller) requestRef.current = null;
       }
     }
 
@@ -189,6 +197,8 @@ export default function App() {
   useEffect(() => {
     function handleOnline() {
       setIsOnline(true);
+      /* Do not race an initial/search fetch that is already running. */
+      if (requestRef.current) return;
       void loadWeather(city, Boolean(weather));
     }
 
@@ -232,6 +242,37 @@ export default function App() {
     void syncReminderWithWorker(reminder);
   }, [reminder]);
 
+  /*
+   * Page-side timer covers the common case where the tab stays open. Service
+   * workers are stopped when idle, so their timer alone is not reliable.
+   */
+  useEffect(() => {
+    if (!reminder.enabled || notificationState !== "granted") return;
+
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const scheduleNext = () => {
+      timer = setTimeout(async () => {
+        if (stopped) return;
+        try {
+          await showDailyReminderNotification();
+        } catch {
+          // Permission may have been revoked; the sidebar already explains it.
+        }
+        scheduleNext();
+      }, millisecondsUntil(reminder.time));
+    };
+
+    scheduleNext();
+    void registerPeriodicReminderSync();
+
+    return () => {
+      stopped = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [reminder, notificationState]);
+
   useEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (event: MediaQueryListEvent) =>
@@ -239,6 +280,22 @@ export default function App() {
 
     media.addEventListener("change", handleChange);
     return () => media.removeEventListener("change", handleChange);
+  }, []);
+
+  /* Permission can change in browser settings while the app is open. */
+  useEffect(() => {
+    const refreshPermission = () => setNotificationState(getNotificationState());
+    const handleVisibility = () => {
+      if (!document.hidden) refreshPermission();
+    };
+
+    window.addEventListener("focus", refreshPermission);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.removeEventListener("focus", refreshPermission);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, []);
 
   /* The class drives every `dark:` style; `system` follows the OS setting. */

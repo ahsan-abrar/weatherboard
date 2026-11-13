@@ -18,20 +18,49 @@ export function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   const cancelRef = useRef<HTMLButtonElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
 
-  /* Escape closes the dialog, matching every other dismissible surface. */
+  /* Escape closes; Tab is trapped inside the dialog for keyboard users. */
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') onCancel()
+      if (event.key === 'Escape') {
+        onCancel()
+        return
+      }
+
+      if (event.key !== 'Tab') return
+
+      const dialog = dialogRef.current
+      if (!dialog) return
+
+      const focusable = [
+        ...dialog.querySelectorAll<HTMLElement>('button:not(:disabled)'),
+      ]
+      if (focusable.length === 0) return
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
 
     document.addEventListener('keydown', handleKey)
     return () => document.removeEventListener('keydown', handleKey)
   }, [onCancel])
 
-  /* Focus Cancel first so an accidental Enter does not delete data. */
+  /* Focus Cancel first, then give focus back to the trigger on close. */
   useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement | null
     cancelRef.current?.focus()
+
+    return () => previousFocusRef.current?.focus()
   }, [])
 
   return (
@@ -40,6 +69,7 @@ export function ConfirmDialog({
       onMouseDown={onCancel}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-title"

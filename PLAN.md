@@ -153,7 +153,9 @@ Each step ends with: `npm run lint`, `npm run build`, a manual check at 375 / 76
 ### Step 10 — Daily reminder notification
 - Reminder card: explanation text **before** the browser permission prompt, enable switch, time picker (default
   07:30), “send test notification” and permission status.
-- `public/notification-sw.js`: schedules the next reminder in IndexedDB and `notificationclick` focuses/opens the app.
+- `public/notification-sw.js`: schedules the next reminder in IndexedDB, catches up missed reminders,
+  handles `periodicSync` where supported, and `notificationclick` focuses/opens the app.
+- A page-side timer backs the worker while the tab is open, so changing the time immediately reschedules.
 - Blocked/unsupported states render inline without breaking anything; permission denial keeps the toggle off.
 - **Done:** test notification appears; enabling stores the time; blocked state shows the fallback message.
 - **Honest limitation (documented in README):** client-only apps cannot guarantee delivery when the browser is
