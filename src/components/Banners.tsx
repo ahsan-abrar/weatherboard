@@ -52,7 +52,13 @@ export function PreviewBar({ value, onChange }: PreviewBarProps) {
   )
 }
 
-export function OfflineBanner({ updatedAt }: { updatedAt?: number }) {
+export function OfflineBanner({
+  updatedAt,
+  isStale = false,
+}: {
+  updatedAt?: number
+  isStale?: boolean
+}) {
   return (
     <div
       role="status"
@@ -62,10 +68,25 @@ export function OfflineBanner({ updatedAt }: { updatedAt?: number }) {
       <div>
         <p className="text-sm font-medium">{MESSAGES.offlineBanner}</p>
         {updatedAt && (
-          <p className="mt-0.5 text-xs text-muted">Last updated {formatTime(updatedAt)}</p>
+          <p className="mt-0.5 text-xs text-muted">
+            Last updated {formatTime(updatedAt)}
+            {isStale && ' · saved copy may be out of date'}
+          </p>
         )}
       </div>
     </div>
+  )
+}
+
+export function OfflineEmpty() {
+  return (
+    <section className="rounded-card border border-line bg-card px-6 py-16 text-center shadow-card">
+      <WifiOff size={36} className="mx-auto text-muted" aria-hidden="true" />
+      <h2 className="mt-4 font-display text-3xl">No saved weather yet</h2>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
+        {MESSAGES.offlineNoCache}
+      </p>
+    </section>
   )
 }
 

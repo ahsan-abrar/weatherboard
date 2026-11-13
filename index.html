@@ -9,12 +9,32 @@
       content="WeatherBoard — current conditions, a 5-day forecast, and your favourite cities."
     />
     <meta name="theme-color" content="#eef2f6" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="WeatherBoard" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap"
       rel="stylesheet"
     />
+    <script>
+      // Apply the saved theme before first paint to avoid a light flash.
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem("weatherboard:settings") || "{}",
+        );
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        const dark =
+          saved.theme === "dark" || (saved.theme !== "light" && prefersDark);
+        document.documentElement.classList.toggle("dark", dark);
+      } catch {
+        // Blocked storage: React applies the default theme instead.
+      }
+    </script>
     <title>WeatherBoard — Personal Weather Dashboard</title>
   </head>
   <body>

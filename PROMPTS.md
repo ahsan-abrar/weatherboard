@@ -46,3 +46,12 @@
 
 ## 2026-11-13 14:59:03 PKT
 > tested working fine, let's move to next step
+
+## 2026-11-13 15:09:33 PKT
+> tested and working fine, let's move to next step
+
+## 2026-11-13 15:15:04 PKT
+> dark mode and C/°F working fine, let's move to next step
+
+## 2026-11-13 15:28:12 PKT
+> go ahead

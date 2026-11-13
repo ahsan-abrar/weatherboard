@@ -34,6 +34,8 @@ export interface WeatherSnapshot {
   city: City
   current: CurrentWeather
   forecast: ForecastDay[]
+  /** Set only when a cached copy is older than the cache TTL. */
+  isStale?: boolean
 }
 
 export interface Settings {

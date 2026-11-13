@@ -1,4 +1,4 @@
-import { API, MAX_SUGGESTIONS, MESSAGES, STORAGE_KEYS } from '../constants'
+import { API, CACHE_TTL_MS, MAX_SUGGESTIONS, MESSAGES, STORAGE_KEYS } from '../constants'
 import { geoClient, weatherClient } from './client'
 import type {
   ApiError,
@@ -294,7 +294,13 @@ function cacheWeather(snapshot: WeatherSnapshot) {
 
 /** Used by the offline mode step; safe to call before any weather exists. */
 export function readCachedWeather(): WeatherSnapshot | null {
-  return readStorage<WeatherSnapshot>(STORAGE_KEYS.cachedWeather)
+  const cached = readStorage<WeatherSnapshot>(STORAGE_KEYS.cachedWeather)
+  if (!cached) return null
+
+  return {
+    ...cached,
+    isStale: Date.now() - cached.current.updatedAt > CACHE_TTL_MS,
+  }
 }
 
 /**

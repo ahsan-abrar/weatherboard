@@ -63,7 +63,7 @@ export function CurrentWeather({
         </div>
 
         <div className="flex items-center gap-4">
-          <WeatherIcon name={current.icon} size={56} className="text-sun" />
+          <WeatherIcon name={current.icon} size={56} className="animate-weather text-sun" />
           <div>
             <p className="text-xl font-semibold">{condition.label}</p>
             <p className="mt-0.5 text-sm text-muted">

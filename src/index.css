@@ -29,6 +29,18 @@
   --radius-panel: 20px;
 
   --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 12px 32px -22px rgb(15 23 42 / 0.35);
+
+  --animate-weather: weather-float 5s ease-in-out infinite;
+}
+
+@keyframes weather-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
 }
 
 .dark {
@@ -59,6 +71,9 @@
 
   body {
     @apply bg-page font-sans text-ink antialiased;
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
   }
 
   ::selection {
