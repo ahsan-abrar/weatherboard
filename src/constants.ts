@@ -88,6 +88,7 @@ export const MESSAGES = {
   rateLimit: 'The weather service is busy right now. Try again in a minute.',
   server: 'The weather service returned an error. Please try again shortly.',
   offlineNoCache: 'You are offline and no weather has been saved yet. Reconnect and search for a city.',
+  offlineBanner: 'You are offline — showing the last saved weather.',
   favouritesFull: `You can save up to ${MAX_FAVOURITES} cities. Remove one first.`,
   storageBlocked: 'Your browser is blocking local storage, so changes will only last for this session.',
   notificationsUnsupported: 'This browser does not support notifications, so the daily reminder is unavailable.',

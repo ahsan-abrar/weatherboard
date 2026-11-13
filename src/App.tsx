@@ -1,12 +1,19 @@
+import { useState } from 'react'
 import { Moon } from 'lucide-react'
 import { DEFAULT_CITY, DEFAULT_REMINDER, UNIT_LABELS } from './constants'
+import {
+  FetchError,
+  NotificationBlockedBanner,
+  OfflineBanner,
+  PreviewBar,
+  WeatherSkeleton,
+} from './components/Banners'
 import { CurrentWeather } from './components/CurrentWeather'
 import { ForecastList } from './components/ForecastList'
-import { PreviewBar } from './components/Banners'
 import { SearchBar } from './components/SearchBar'
 import { Sidebar } from './components/Sidebar'
 import { StatsCard } from './components/StatsCard'
-import type { Unit, WeatherSnapshot } from './types'
+import type { PreviewState, Unit, WeatherSnapshot } from './types'
 
 /* Temporary data for the static UI step; replaced by real API data in Step 4. */
 const MOCK_WEATHER: WeatherSnapshot = {
@@ -32,16 +39,17 @@ const MOCK_WEATHER: WeatherSnapshot = {
 }
 
 export default function App() {
+  const [preview, setPreview] = useState<PreviewState>('live')
   const weather = MOCK_WEATHER
   const unit: Unit = 'celsius'
 
   return (
     <div className="min-h-dvh bg-page">
-      <div className="mx-auto flex min-h-dvh w-full max-w-[1920px] flex-col md:flex-row">
+      <div className="mx-auto flex min-h-dvh w-full max-w-[1920px] flex-col lg:flex-row">
         <Sidebar favourites={[]} reminder={DEFAULT_REMINDER} />
 
         <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-10 lg:py-8">
-          <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <SearchBar />
 
             <div className="flex items-center gap-2.5">
@@ -49,14 +57,14 @@ export default function App() {
                 <button
                   type="button"
                   aria-pressed="true"
-                  className="min-h-9 rounded-md bg-ink px-3 text-xs font-semibold text-page"
+                  className="min-h-11 min-w-11 rounded-md bg-ink px-3 text-xs font-semibold text-page"
                 >
                   {UNIT_LABELS.celsius}
                 </button>
                 <button
                   type="button"
                   aria-pressed="false"
-                  className="min-h-9 rounded-md px-3 text-xs font-medium text-muted"
+                  className="min-h-11 min-w-11 rounded-md px-3 text-xs font-medium text-muted"
                 >
                   {UNIT_LABELS.fahrenheit}
                 </button>
@@ -73,18 +81,38 @@ export default function App() {
           </header>
 
           <div className="mx-auto mt-8 w-full max-w-[1480px] lg:mt-12">
-            <CurrentWeather
-              city={weather.city}
-              current={weather.current}
-              unit={unit}
-              isFavourite={false}
-            />
+            {preview === 'offline' && (
+              <div className="mb-5">
+                <OfflineBanner updatedAt={weather.current.updatedAt} />
+              </div>
+            )}
 
-            <StatsCard current={weather.current} unit={unit} />
+            {preview === 'blocked' && (
+              <div className="mb-5">
+                <NotificationBlockedBanner />
+              </div>
+            )}
 
-            <ForecastList forecast={weather.forecast} unit={unit} />
+            {preview === 'loading' ? (
+              <WeatherSkeleton />
+            ) : preview === 'error' ? (
+              <FetchError onRetry={() => setPreview('live')} />
+            ) : (
+              <>
+                <CurrentWeather
+                  city={weather.city}
+                  current={weather.current}
+                  unit={unit}
+                  isFavourite={false}
+                />
 
-            <PreviewBar />
+                <StatsCard current={weather.current} unit={unit} />
+
+                <ForecastList forecast={weather.forecast} unit={unit} />
+              </>
+            )}
+
+            <PreviewBar value={preview} onChange={setPreview} />
           </div>
         </main>
       </div>

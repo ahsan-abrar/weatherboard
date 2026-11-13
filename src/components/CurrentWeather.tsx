@@ -16,7 +16,7 @@ export function CurrentWeather({ city, current, unit, isFavourite }: CurrentWeat
   const temperature = toDisplayTemp(current.tempC, unit)
 
   return (
-    <section className="flex flex-col gap-8 xl:flex-row xl:items-start xl:justify-between xl:gap-12">
+    <section className="flex flex-col gap-8 lg:flex-row lg:flex-wrap lg:items-start lg:justify-between lg:gap-y-6 xl:gap-12">
       <div className="shrink-0">
         <p className="flex items-center gap-1.5 text-sm text-muted">
           <MapPin size={14} aria-hidden="true" />
