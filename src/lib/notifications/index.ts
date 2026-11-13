@@ -5,7 +5,7 @@ import { formatReminderTime } from '../utils'
 const REMINDER_DB = 'weatherboard'
 const REMINDER_STORE = 'reminder'
 const REMINDER_KEY = 'daily'
-const NOTIFICATION_GAP_MS = 2 * 60 * 1000
+const NOTIFICATION_GAP_MS = 30 * 1000
 
 /** Notifications can be unavailable, or allowed/denied by the browser. */
 export type NotificationState = NotificationPermission | 'unsupported'

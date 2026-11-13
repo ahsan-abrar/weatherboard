@@ -137,7 +137,3 @@
 ## 2026-11-13 20:03:44 PKT
 
 > currently I am noticing the app icon is not consist, please make sure icon is consist throughout the app
-
-## 2026-11-13 20:12:09 PKT
-
-> review the codebase and find unhandle corner cases and any improvement before move to production

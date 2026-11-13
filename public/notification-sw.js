@@ -10,7 +10,7 @@ const STORE_NAME = 'reminder'
 const REMINDER_KEY = 'daily'
 const ICON = '/icons/icon-192.png'
 /* Page and worker can fire together; only one claims the slot. */
-const NOTIFICATION_GAP_MS = 2 * 60 * 1000
+const NOTIFICATION_GAP_MS = 30 * 1000
 
 let reminderTimer = null
 let resumeInFlight = null
