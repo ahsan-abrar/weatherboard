@@ -3,13 +3,14 @@
 **Challenge:** Edspire Frontend (React) Technical Challenge · deadline Sat 14 Nov 2026, 11:00 AM PKT
 **Stack:** React 19 + TypeScript + Vite 8, **Tailwind CSS v4**, **Axios**, **lucide-react** icons, client-side only, PWA
 **Design:** the attached screenshot (light theme, sidebar + main weather panel)
+**Status:** Steps 1–11 implemented · live at https://weatherboard-lyart.vercel.app
 
 **Rules for this build**
 
 - Build **one step at a time**. Stop after each step for review, then continue only on approval.
 - Keep it simple: no state library, no routing, no folder-per-feature, no premature abstraction.
-- One constants file (`src/constants.ts`) for URLs, keys, limits, defaults, messages.
-- One utils file (`src/utils.ts`) for helpers reused in more than one place.
+- One constants file (`src/lib/constants/index.ts`) for URLs, keys, limits, defaults, messages.
+- One utils file (`src/lib/utils/index.ts`) for helpers reused in more than one place.
 - Code must be short and readable; a new developer should follow it without a diagram.
 - Comments explain **why**, not syntax.
 
@@ -144,16 +145,16 @@ Each step ends with: `npm run lint`, `npm run build`, a manual check at 375 / 76
 
 ### Step 9 — PWA
 - Manifest: name, short_name, description, `display: standalone`, `theme_color`, background, 192/512/maskable icons.
-- `vite-plugin-pwa` with `injectManifest` and `src/sw.ts`: precache app shell, runtime-cache weather responses,
-  navigation fallback, notification handling.
-- Install prompt UI (small, dismissible) + “installed” detection.
+- `vite-plugin-pwa` with `generateSW`: precache app shell, runtime-cache weather responses, navigation fallback.
+  Reminder + notification-click handlers live in `public/notification-sw.js` and are loaded via `importScripts`.
+- Install prompt UI (header button) + “installed” detection.
 - **Done:** Lighthouse installable; offline reload serves the shell and last cached city; icons valid.
 
 ### Step 10 — Daily reminder notification
 - Reminder card: explanation text **before** the browser permission prompt, enable switch, time picker (default
   07:30), “send test notification” and permission status.
-- `sw.ts`: `notificationclick` focuses/opens the app; schedule the next reminder while the service worker is alive.
-- Blocked/unsupported states render inline without breaking anything; permission denial reverts the toggle.
+- `public/notification-sw.js`: schedules the next reminder in IndexedDB and `notificationclick` focuses/opens the app.
+- Blocked/unsupported states render inline without breaking anything; permission denial keeps the toggle off.
 - **Done:** test notification appears; enabling stores the time; blocked state shows the fallback message.
 - **Honest limitation (documented in README):** client-only apps cannot guarantee delivery when the browser is
   fully closed — reliable delivery needs a push server. The service worker handles “tab closed, browser open”
@@ -164,6 +165,8 @@ Each step ends with: `npm run lint`, `npm run build`, a manual check at 375 / 76
 - Final PROMPTS.md pass; `lint` + `build`; accessibility/keyboard/responsive audit at 375/768/1280.
 - Deploy (Vercel or Netlify) and verify install + offline on the deployed URL.
 - **Done:** submission-ready repo + live URL.
+- **Result:** deployed on Vercel; Lighthouse accessibility/best-practices/SEO 100; responsive re-checked;
+  README and PROMPTS.md finalised.
 
 ---
 

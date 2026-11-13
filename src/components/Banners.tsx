@@ -1,4 +1,4 @@
-import { AlertCircle, BellOff, CloudOff, RotateCcw, WifiOff } from 'lucide-react'
+import { AlertCircle, Bell, BellOff, CloudOff, RotateCcw, WifiOff } from 'lucide-react'
 import { MESSAGES, PREVIEW_STATES } from '../lib/constants'
 import type { PreviewState } from '../lib/types'
 import { cn, formatTime } from '../lib/utils'
@@ -6,13 +6,14 @@ import { cn, formatTime } from '../lib/utils'
 interface PreviewBarProps {
   value: PreviewState
   onChange: (state: PreviewState) => void
+  onSendTest: () => void
 }
 
 /**
  * Reviewers can force each app state without waiting for real network or
  * permission failures. Clicking the active state returns to live data.
  */
-export function PreviewBar({ value, onChange }: PreviewBarProps) {
+export function PreviewBar({ value, onChange, onSendTest }: PreviewBarProps) {
   return (
     <section className="mt-10 flex flex-wrap items-center gap-2.5 rounded-card border border-line bg-card px-5 py-4 shadow-card">
       <span className="mr-1.5 text-sm text-muted">Preview states:</span>
@@ -38,16 +39,27 @@ export function PreviewBar({ value, onChange }: PreviewBarProps) {
         )
       })}
 
-      {value !== 'live' && (
+      <div className="ml-auto flex flex-wrap items-center gap-2.5">
         <button
           type="button"
-          onClick={() => onChange('live')}
-          className="ml-auto flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-muted transition-colors hover:text-ink lg:min-h-9"
+          onClick={onSendTest}
+          className="flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-card px-3.5 text-xs font-medium transition-colors hover:bg-panel lg:min-h-9"
         >
-          <RotateCcw size={13} aria-hidden="true" />
-          Back to live
+          <Bell size={14} aria-hidden="true" />
+          Send test notification
         </button>
-      )}
+
+        {value !== 'live' && (
+          <button
+            type="button"
+            onClick={() => onChange('live')}
+            className="flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-muted transition-colors hover:text-ink lg:min-h-9"
+          >
+            <RotateCcw size={13} aria-hidden="true" />
+            Back to live
+          </button>
+        )}
+      </div>
     </section>
   )
 }

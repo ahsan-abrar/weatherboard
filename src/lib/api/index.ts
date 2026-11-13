@@ -86,24 +86,43 @@ async function searchOpenMeteo(query: string, signal?: AbortSignal): Promise<Cit
 }
 
 /**
- * GeoDB gives better-ranked suggestions when a key exists. A missing key,
- * rate limit or empty result quietly falls through to Open-Meteo geocoding.
+ * Query both providers in parallel. Open-Meteo leads because it covers cities
+ * missing from GeoDB's free dataset, while GeoDB adds its population-ranked
+ * results and still powers the "keyed autocomplete" integration.
  */
 export async function searchCities(query: string, signal?: AbortSignal): Promise<City[]> {
   const term = query.trim()
   if (term.length < 2) return []
 
-  if (API.geoDb.key) {
-    try {
-      const cities = await searchGeoDb(term, signal)
-      if (cities.length > 0) return cities
-    } catch (error) {
-      if (isCanceled(error)) throw error
-      // Fall back to the keyless provider instead of failing the search.
-    }
+  const requests: Array<Promise<City[]>> = [searchOpenMeteo(term, signal)]
+  if (API.geoDb.key) requests.push(searchGeoDb(term, signal))
+
+  const settled = await Promise.allSettled(requests)
+  const canceled = settled.find(
+    (result) => result.status === 'rejected' && isCanceled(result.reason),
+  )
+  if (canceled && canceled.status === 'rejected') throw canceled.reason
+
+  const cities = settled.flatMap((result) =>
+    result.status === 'fulfilled' ? result.value : [],
+  )
+
+  if (cities.length === 0) {
+    const failure = settled.find((result) => result.status === 'rejected')
+    if (failure && failure.status === 'rejected') throw failure.reason
+    return []
   }
 
-  return searchOpenMeteo(term, signal)
+  /* Remove the same place when both providers return it. */
+  const seen = new Set<string>()
+  return cities
+    .filter((city) => {
+      const key = `${city.name.toLowerCase()}|${(city.countryCode ?? city.country).toLowerCase()}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    .slice(0, MAX_SUGGESTIONS)
 }
 
 /* ---------- Weather ---------- */

@@ -16,7 +16,6 @@ interface SidebarProps {
   onEnableReminder: () => void
   onDisableReminder: () => void
   onTimeChange: (time: string) => void
-  onSendTest: () => void
 }
 
 export function Sidebar({
@@ -30,7 +29,6 @@ export function Sidebar({
   onEnableReminder,
   onDisableReminder,
   onTimeChange,
-  onSendTest,
 }: SidebarProps) {
   /* Mobile keeps the panel collapsed; the chevron is the only way in. */
   const [isOpen, setIsOpen] = useState(false)
@@ -198,16 +196,6 @@ export function Sidebar({
               />
             </div>
           </div>
-
-          {reminder.enabled && notificationState === 'granted' && (
-            <button
-              type="button"
-              onClick={onSendTest}
-              className="mt-1 min-h-11 text-xs font-medium text-brand hover:underline"
-            >
-              Send test notification
-            </button>
-          )}
         </div>
 
         <div className="mt-9">
